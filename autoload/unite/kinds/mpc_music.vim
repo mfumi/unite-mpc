@@ -37,6 +37,24 @@ function! s:kind.action_table.add.func(candidates)  "{{{2
     endfor
 endfunction
 
+let s:kind.action_table.add_entire_dir = {
+\   'is_selectable' : 0,
+\   'is_quit' : 0,
+\   'is_invalidate_cache' : 0,
+\   'description' : 'add all musics in entire directory to current playlist',
+\ }
+
+function! s:kind.action_table.add_entire_dir.func(candidate)  "{{{2
+	echo "\n"
+    if has('win32') || has('win64')
+        let dir = join(split(a:candidate.word,'\\')[:-2],'\\')
+    else
+        let dir = join(split(a:candidate.word,'/')[:-2],'/')
+    endif
+    call system('mpc add "'.dir.'"')
+    echo "add to playlist : ".dir
+endfunction
+
 function! unite#kinds#mpc_music#define()  "{{{2
     return s:kind
 endfunction
