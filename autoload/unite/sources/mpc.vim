@@ -7,7 +7,14 @@ let s:source = {
 
 function! s:source.gather_candidates(args, context)
     if len(a:args) > 0 
-        if index(["playlist","ls","lsplaylists","listall"],a:args[0]) != -1
+        if index([
+                    \"playlist",
+                    \"ls",
+                    \"lsplaylists",
+                    \"listall",
+                    \"artist",
+                    \]
+                    \,a:args[0]) != -1
             let cmd = a:args[0]
         else
             echoerr "Unite mpc: invalid arg"
@@ -31,6 +38,34 @@ function! s:source.gather_candidates(args, context)
             \ "kind": "mpc_playlist",
             \ "action__num": v:key+1,
             \ }')
+    elseif cmd == "artist"
+        if len(a:args) > 2
+            return map(split(system('mpc find Artist "'.a:args[1].'"'
+                \.' Album "'.a:args[2].'"'), "\n"), '{
+                \ "word": v:val,
+                \ "source": "mpc",
+                \ "kind": "mpc_music",
+                \ "action__num": v:key+1,
+                \ "action__artist":  a:args[1],
+                \ "action__album":  a:args[2],
+                \ }')
+        elseif len(a:args) > 1
+            return map(split(system('mpc list Album Artist "'.a:args[1].'"'
+                \),"\n"), '{
+                \ "word": v:val,
+                \ "source": "mpc",
+                \ "kind": "mpc_album",
+                \ "action__num": v:key+1,
+                \ "action__artist":  a:args[1],
+                \ }')
+        else
+            return map(split(system('mpc list Artist'), "\n"), '{
+                \ "word": v:val,
+                \ "source": "mpc",
+                \ "kind": "mpc_artist",
+                \ "action__num": v:key+1,
+                \ }')
+        endif
     elseif cmd == "ls"
         if len(a:args) > 1
             let dir = a:args[1]
