@@ -25,19 +25,21 @@ function! s:source.gather_candidates(args, context)
     endif
 
     if cmd == "playlist"
-        return map(split(system('mpc '.cmd), "\n"), '{
+        return map(split(system('mpc playlist'), "\n"), '{
             \ "word": v:val,
             \ "source": "mpc",
             \ "kind": "mpc_playlist_music",
             \ "action__num": v:key+1,
             \ }')
+
     elseif cmd == "lsplaylists"
-        return map(split(system('mpc '.cmd), "\n"), '{
+        return map(split(system('mpc lsplaylists'), "\n"), '{
             \ "word": v:val,
             \ "source": "mpc",
             \ "kind": "mpc_playlist",
             \ "action__num": v:key+1,
             \ }')
+
     elseif cmd == "artist"
         if len(a:args) > 2
             return map(split(system('mpc find Artist "'.a:args[1].'"'
@@ -66,26 +68,33 @@ function! s:source.gather_candidates(args, context)
                 \ "action__num": v:key+1,
                 \ }')
         endif
+
     elseif cmd == "ls"
         if len(a:args) > 1
             let dir = a:args[1]
         else
             let dir = ""
         endif
-        let cmd = cmd." ".dir
+
+        return map(split(system('mpc ls "'.dir.'"'), "\n"), '{
+            \ "word": v:val,
+            \ "source": "mpc",
+            \ "kind":
+            \ v:val =~ ".mp3$" || 
+            \ v:val =~ ".m4a$" || 
+            \ v:val =~ ".ogg$" ||
+            \ v:val =~ ".wav$" || 
+            \ v:val =~ ".flac$" ? 
+            \ "mpc_music" : "mpc_dir"
+            \ }')
+
+    else  "listall
+        return map(split(system('mpc '.cmd), "\n"), '{
+            \ "word": v:val,
+            \ "source": "mpc",
+            \ "kind": "mpc_music",
+            \ }')
     endif
-    " cmd is ls or listall
-    return map(split(system('mpc '.cmd), "\n"), '{
-        \ "word": v:val,
-        \ "source": "mpc",
-        \ "kind":
-        \ v:val =~ ".mp3$" || 
-        \ v:val =~ ".m4a$" || 
-        \ v:val =~ ".ogg$" ||
-        \ v:val =~ ".wav$" || 
-        \ v:val =~ ".flac$" ? 
-        \ "mpc_music" : "mpc_dir"
-        \ }')
 endfunction
 
 function! unite#sources#mpc#define()

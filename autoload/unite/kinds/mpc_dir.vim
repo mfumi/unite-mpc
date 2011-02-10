@@ -15,7 +15,7 @@ let s:kind.action_table.ls= {
 \ }
 
 function! s:kind.action_table.ls.func(candidate)  "{{{2
-	call unite#start([["mpc","ls",'"'.a:candidate.word.'"'],])
+	call unite#start([["mpc","ls",a:candidate.word],])
 endfunction
 
 function! unite#kinds#mpc_dir#define()  "{{{2
