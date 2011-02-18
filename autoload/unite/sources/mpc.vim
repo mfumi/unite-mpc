@@ -3,6 +3,7 @@ set cpo&vim
 
 let s:source = { 
 \   'name': 'mpc',
+\   'max_candidates': 1000
 \ }
 
 function! s:source.gather_candidates(args, context)
