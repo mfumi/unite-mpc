@@ -25,12 +25,67 @@ function! s:source.gather_candidates(args, context)
     endif
 
     if cmd == "playlist"
-        return map(split(system('mpc playlist'), "\n"), '{
-            \ "word": v:val,
-            \ "source": "mpc",
-            \ "kind": "mpc_playlist_music",
-            \ "action__num": v:key+1,
-            \ }')
+        
+        let r = split(system('echo "playlistinfo\nclose"| nc '
+                        \.g:mpd_host.' '.g:mpd_port),"\n")[1:-2]
+        
+        let i = 0
+        let info = [{}]
+        
+        for line  in r
+            let [k,v] = split(line,": ")
+            let info[i][k] = v
+            if k == "Id"
+                let i += 1
+                call add(info,{})
+            endif
+        endfor
+
+        unlet i
+        let candidates = []
+
+        for i in range(len(info)-1)
+            let info_ = info[i]
+            let word = s:padding(info_["Id"],5)
+
+            if has_key(info_,"Title")
+                let word .= s:padding(has_key(info_,"Artist") ? 
+                                    \"  ".info_["Artist"]:"",30)
+                let word .= s:padding(has_key(info_,"Title") ? 
+                                    \"  ".info_["Title"]:"",40)
+                let word .= s:padding(has_key(info_,"Album") ? 
+                                    \"  ".info_["Album"]:"",40)
+                let word .= s:padding(has_key(info_,"Track") ? 
+                                    \"   ".info_["Track"]:"",8)
+                let word .= s:padding(has_key(info_,"Date") ? 
+                                    \" (".info_["Date"].")":"",8)
+                if has_key(info_,"Time")
+                    let time = info_["Time"]
+                    let min = time / 60
+					let min = len(min) == 1 ? " ".min : min
+                    let sec = time % 60
+					let sec = len(sec) == 1 ? "0".sec : sec
+					let time = min.":".sec
+                else 
+                    let time = ""
+                endif
+                let word .= "  ".s:padding(time,5)
+                if has_key(info_,"Genre")
+                    let word .= "  ".info_["Genre"]
+                endif
+            else
+                let word = simplify(info_["file"])
+            endif
+
+            let candidate = {}
+            let candidate["word"] = word
+            let candidate["source"] = "mpc"
+            let candidate["kind"] = "mpc_playlist_music"
+            let candidate["action__num"] = i+1
+            call add(candidates,candidate)
+        endfor
+
+        return candidates
 
     elseif cmd == "lsplaylists"
         return map(split(system('mpc lsplaylists'), "\n"), '{
@@ -97,7 +152,44 @@ function! s:source.gather_candidates(args, context)
     endif
 endfunction
 
+function! s:padding(str,width)
+    if v:version >= 703
+        if strwidth(a:str) > a:width 
+            let str = s:trim(a:str,a:width-3)."..."
+            let str = str.repeat(' ',a:width-strwidth(str))
+        else
+            let str = a:str.repeat(' ',a:width-strwidth(a:str))
+        endif   
+    else
+        if len(a:str) > a:width
+            let str =  a:str[:a:width-1]
+        else
+            let str = a:str.repeat(' ',a:width-len(a:str))
+        endif
+    endif
+    return str
+endfunction
+
+" Trim string after a:n display cells.
+" thanks: tyru [https://gist.github.com/833618]
+function! s:trim(s, n)
+    let s = ''
+    for c in split(a:s, '\zs')
+        if strwidth(s . c) > a:n
+            return s
+        endif
+        let s .= c
+    endfor
+    return s
+endfunction
+
 function! unite#sources#mpc#define()
+    if !exists('g:mpd_host')
+        let g:mpd_host = "localhost"
+    endif
+    if !exists('g:mpd_port')
+        let g:mpd_port = "6600"
+    endif
     return executable('mpc') ? [s:source] : []
 endfunction
 
