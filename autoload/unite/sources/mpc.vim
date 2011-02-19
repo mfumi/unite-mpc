@@ -36,7 +36,7 @@ function! s:source.gather_candidates(args, context)
 
     if cmd == "playlist"
         echo "caching... please wait"
-        let r = split(system('echo "playlistinfo\nclose"| nc '
+        let r = split(system('echo "playlistinfo'.nr2char(10).'close"| nc '
                         \.g:mpd_host.' '.g:mpd_port),"\n")[1:-2]
         
         let info = s:parse_info(r)
@@ -149,7 +149,7 @@ function! s:source.gather_candidates(args, context)
 
     else  "listall
         echo "caching... please wait"
-        let r = split(system('echo "listallinfo\nclose"| nc '
+        let r = split(system('echo "listallinfo'.nr2char(10).'close"| nc '
                         \.g:mpd_host.' '.g:mpd_port),"\n")[1:-2]
         
         let info = s:parse_info(r)
