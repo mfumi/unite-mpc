@@ -1,0 +1,82 @@
+*unite-mpc.txt*  A Unite source for controlling mpd (music player daemon).            
+
+Author: mfumi <m.fumi760@gmail.com>
+(Forked from [http://github.com/mattn/unite-mpc])
+
+==============================================================================
+INTRODUCTION                                    *unite-mpc-introduction*
+
+*unite-mpc* is a |unite| source for controlling mpd (music player daemon).
+
+Requirement:
+- unite.vim
+- mpc (music player daemon client)
+- nc  (netcat)
+- mpc.vim [http://github.com/mfumi/mpc.vim] (Optional)
+   + If you want use action "fetch_lyrics"
+  
+Latest version:
+http://github.com/mfumi/unite-mpc
+
+==============================================================================
+USAGE                                           *unite-mpc-usage*
+
+:Unite mpc
+:Unite mpc:listall
+    List all songs in the music dir.
+    It parses music information itself, so if the number of songs is large,
+    it takes long time to candidate information.
+    (If you have over ten thousands of songs, it'll take several tens of 
+     seconds)
+    Once it is called, the candidates is cached.
+:Unite mpc:listall2
+    Same as mpc:listall excepet it uses "mpc listall" result.
+    So,it much faster than "mpc:listall", but information which is displayed
+    is only file name.
+
+
+:Unite mpc:playlist
+    List all songs in the currentry playlist.
+    It parses music information itself, so if the number of songs is large,
+    it takes long time to candidate information.
+    Once it is called, the candidates is cached.
+:Unite mpc:playlist2
+    Same as mpc:playlist excepet it uses "mpc playlist" result.
+    So,it much faster than "mpc:playlist", but information which is displayed
+    is only file name or title and artist name.
+
+
+:Unite mpc:artist
+    List all artists.
+:Unite mpc:artist:<artist>
+    List all <artist>'s alubm.
+:Unite mpc:artist:<artist>:<album>
+    Liat all the song in <artist>'s <album>.
+
+
+:Unite mpc:ls[:<dir>]
+    List the contens of <dir>.
+
+
+:Unite mpc:lsplaylists
+    List currently available playlists.
+
+
+NOTE
+    mpc:listall, mpc:listall2, mpc:playlist, mpc:playlist2, mpc:lsplaylists
+    chche the candidates. If you want update the candidates, you can do
+    <Plug>(unite_redraw)  (the default is <C-l> on the unite buffer).
+
+==============================================================================
+CUSTOMIZING                                     *unite-mpc-customizing*
+
+g:mpd_host
+    The host which mpd is running on.
+    default : "localhost"
+    
+g:mpd_port
+    The port number which is used by mpd.
+    default : "6600"
+
+==============================================================================
+vim: tw=78
