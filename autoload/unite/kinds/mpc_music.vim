@@ -15,9 +15,9 @@ let s:kind.action_table.ls_parent = {
 
 function! s:kind.action_table.ls_parent.func(candidate)  "{{{2
     if has('win32') || has('win64')
-        let dir = join(split(a:candidate.word,'\\')[:-3],'\\')
+        let dir = join(split(a:candidate.action__name,'\\')[:-3],'\\')
     else
-        let dir = join(split(a:candidate.word,'/')[:-3],'/')
+        let dir = join(split(a:candidate.action__name,'/')[:-3],'/')
     endif
     call unite#start([["mpc","ls",'"'.dir.'"'],])
 endfunction
@@ -25,14 +25,14 @@ endfunction
 let s:kind.action_table.add = {
 \   'is_selectable' : 1,
 \   'is_quit' : 0,
-\   'is_invalidate_cache' : 1,
+\   'is_invalidate_cache' : 0,
 \   'description' : 'add music(s) to current playlist',
 \ }
 
 function! s:kind.action_table.add.func(candidates)  "{{{2
     echo "\n"
     for c in a:candidates
-        call system('mpc add "'.c.word.'"')
+        call system('mpc add "'.c.action__name.'"')
         echo "add to playlist : ".c.word
     endfor
 endfunction
@@ -47,9 +47,9 @@ let s:kind.action_table.add_entire_dir = {
 function! s:kind.action_table.add_entire_dir.func(candidate)  "{{{2
 	echo "\n"
     if has('win32') || has('win64')
-        let dir = join(split(a:candidate.word,'\\')[:-2],'\\')
+        let dir = join(split(a:candidate.action__name,'\\')[:-2],'\\')
     else
-        let dir = join(split(a:candidate.word,'/')[:-2],'/')
+        let dir = join(split(a:candidate.action__name,'/')[:-2],'/')
     endif
     call system('mpc add "'.dir.'"')
     echo "add to playlist : ".dir
