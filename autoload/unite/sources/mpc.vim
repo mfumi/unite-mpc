@@ -6,6 +6,8 @@ let s:source = {
 \   'max_candidates': 1000
 \ }
 
+let s:cache = {}
+
 function! s:source.gather_candidates(args, context)
     if len(a:args) > 0 
         if index([
@@ -25,20 +27,30 @@ function! s:source.gather_candidates(args, context)
         let cmd = "listall"
     endif
 
+    if !a:context.is_redraw && has_key(s:cache,cmd)
+        echo "use cahce"
+        return s:cache[cmd]
+    endif
+
     if cmd == "playlist"
+        echo "caching... please wait"
         let r = split(system('echo "playlistinfo\nclose"| nc '
                         \.g:mpd_host.' '.g:mpd_port),"\n")[1:-2]
         
         let info = s:parse_info(r)
-        return s:generate_candidate_from_info(info,"mpc_playlist_music")
+        let s:cache.playlist = s:generate_candidate_from_info(info,"mpc_playlist_music")
+        return s:cache.playlist
 
     elseif cmd == "lsplaylists"
-        return map(split(system('mpc lsplaylists'), "\n"), '{
+        echo "caching... please wait"
+        let s:cache.lsplaylists =  
+            \ map(split(system('mpc lsplaylists'), "\n"), '{
             \ "word": v:val,
             \ "source": "mpc",
             \ "kind": "mpc_playlist",
             \ "action__num": v:key+1,
             \ }')
+        return s:cache.lsplaylists
 
     elseif cmd == "artist"
         if len(a:args) > 2
@@ -89,17 +101,19 @@ function! s:source.gather_candidates(args, context)
             \ }')
 
     else  "listall
+        echo "caching... please wait"
         let r = split(system('echo "listallinfo\nclose"| nc '
                         \.g:mpd_host.' '.g:mpd_port),"\n")[1:-2]
         
         let info = s:parse_info(r)
-        return s:generate_candidate_from_info(info,"mpc_music")
+        let s:cache.listall = s:generate_candidate_from_info(info,"mpc_music")
+        return s:cache.listall
+
     endif
 endfunction
 
 function! s:parse_info(info)
     let info = []
-    
     let i = -1
     for line  in a:info
         let [k,v] = split(line,": ")[:1]
@@ -111,6 +125,7 @@ function! s:parse_info(info)
         endif
         let info[i][k] = v
     endfor
+
     return info
 endfunction
 
@@ -118,7 +133,7 @@ function! s:generate_candidate_from_info(info,kind)
     let candidates = []
     let i = 1
     for info in a:info
-        let word = ""
+        let word = s:padding(i,5)
     
         if has_key(info,"Title")
             let word .= s:padding(has_key(info,"Artist") ? 
@@ -146,14 +161,15 @@ function! s:generate_candidate_from_info(info,kind)
                 let word .= "  ".info["Genre"]
             endif
         else
-            let word = simplify(info["file"])
+            let word .= "  ".simplify(info["file"])
         endif
     
         let candidate = {}
-        let candidate["word"] = word
-        let candidate["source"] = "mpc"
-        let candidate["kind"] = a:kind
-        let candidate["action__num"] = i
+        let candidate.word = word
+        let candidate.source = "mpc"
+        let candidate.kind = a:kind
+        let candidate.action__num = i
+        let candidate.action__name = info["file"]
         call add(candidates,candidate)
         let i += 1
     endfor
@@ -198,7 +214,7 @@ function! unite#sources#mpc#define()
     if !exists('g:mpd_port')
         let g:mpd_port = "6600"
     endif
-    return executable('mpc') ? [s:source] : []
+    return executable('mpc') && executable('nc') ? [s:source] : []
 endfunction
 
 let &cpo = s:save_cpo
