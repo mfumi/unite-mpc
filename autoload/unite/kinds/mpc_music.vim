@@ -24,7 +24,7 @@ function! s:kind.action_table.ls_parent.func(candidate)  "{{{2
     else
         let dir = join(split(name,'/')[:-3],'/')
     endif
-    call unite#start([["mpc","ls",'"'.dir.'"'],])
+    call unite#start([["mpc","ls",dir],])
 endfunction
 
 let s:kind.action_table.add = {

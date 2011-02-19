@@ -67,8 +67,16 @@ function! s:source.gather_candidates(args, context)
         return s:cache.lsplaylists
 
     elseif cmd == "artist"
+        let back = [{
+                    \ "word" : "[..]",
+                    \ "source" : "mpc",
+                    \ "kind" : "mpc_back",
+                    \ "action__cmd" : "artist"
+                    \ }]
         if len(a:args) > 2
-            return map(split(system('mpc find Artist "'.a:args[1].'"'
+            let back[0].action__arg = a:args[1]
+            return back + 
+                \map(split(system('mpc find Artist "'.a:args[1].'"'
                 \.' Album "'.a:args[2].'"'), "\n"), '{
                 \ "word": v:val,
                 \ "source": "mpc",
@@ -78,7 +86,8 @@ function! s:source.gather_candidates(args, context)
                 \ "action__album":  a:args[2],
                 \ }')
         elseif len(a:args) > 1
-            return map(split(system('mpc list Album Artist "'.a:args[1].'"'
+            return back + 
+                \map(split(system('mpc list Album Artist "'.a:args[1].'"'
                 \),"\n"), '{
                 \ "word": v:val,
                 \ "source": "mpc",
@@ -101,8 +110,20 @@ function! s:source.gather_candidates(args, context)
         else
             let dir = ""
         endif
-
-        return map(split(system('mpc ls "'.dir.'"'), "\n"), '{
+        if has('win32') || has('win64')
+            let back_dir = join(split(dir,'\\')[:-2],'\\')
+        else
+            let back_dir = join(split(dir,'/')[:-2],'/')
+        endif
+        let back = [{
+                    \ "word" : "[..]",
+                    \ "source" : "mpc",
+                    \ "kind" : "mpc_back",
+                    \ "action__cmd" : "ls",
+                    \ "action__arg" : back_dir,
+                    \ }]
+        return  back + 
+            \ map(split(system('mpc ls "'.dir.'"'), "\n"), '{
             \ "word": v:val,
             \ "source": "mpc",
             \ "kind":
