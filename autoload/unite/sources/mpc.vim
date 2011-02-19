@@ -12,9 +12,11 @@ function! s:source.gather_candidates(args, context)
     if len(a:args) > 0 
         if index([
                     \"playlist",
+                    \"playlist2",
                     \"ls",
                     \"lsplaylists",
                     \"listall",
+                    \"listall2",
                     \"artist",
                     \]
                     \,a:args[0]) != -1
@@ -40,6 +42,18 @@ function! s:source.gather_candidates(args, context)
         let info = s:parse_info(r)
         let s:cache.playlist = s:generate_candidate_from_info(info,"mpc_playlist_music")
         return s:cache.playlist
+
+    elseif cmd == "playlist2"
+        echo "caching... please wait"
+        let s:cache.playlist2 =  
+            \ map(split(system('mpc playlist'), "\n"), '{
+            \ "word": v:val,
+            \ "source": "mpc",
+            \ "kind": "mpc_playlist_music",
+            \ "action__num": v:key+1,
+            \ "action__name": v:val,
+            \ }')
+        return s:cache.playlist2
 
     elseif cmd == "lsplaylists"
         echo "caching... please wait"
@@ -99,6 +113,18 @@ function! s:source.gather_candidates(args, context)
             \ v:val =~ ".flac$" ? 
             \ "mpc_music" : "mpc_dir"
             \ }')
+
+    elseif cmd == "listall2"
+        echo "caching... please wait"
+        let s:cache.listall2 =  
+            \ map(split(system('mpc listall'), "\n"), '{
+            \ "word": v:val,
+            \ "source": "mpc",
+            \ "kind": "mpc_music",
+            \ "action__num": v:key+1,
+            \ "action__name": v:val,
+            \ }')
+        return s:cache.listall2
 
     else  "listall
         echo "caching... please wait"
