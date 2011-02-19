@@ -196,6 +196,12 @@ function! s:generate_candidate_from_info(info,kind)
         let candidate.kind = a:kind
         let candidate.action__num = i
         let candidate.action__name = info["file"]
+        if has_key(info,"Artist")
+            let candidate.action__artist = info["Artist"]
+        endif
+        if has_key(info,"Title") 
+            let candidate.action__title = info["Title"]
+        endif
         call add(candidates,candidate)
         let i += 1
     endfor

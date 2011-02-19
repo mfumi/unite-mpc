@@ -5,7 +5,7 @@ let s:kind = {
 \   'name' : 'mpc_music',
 \   'default_action' : 'add',
 \   'action_table': {},
-\   'parents': [],
+\   'parents': ["mpc_lyrics_fetchable"],
 \ }
 
 let s:kind.action_table.ls_parent = {
@@ -45,7 +45,7 @@ let s:kind.action_table.add_entire_dir = {
 \ }
 
 function! s:kind.action_table.add_entire_dir.func(candidate)  "{{{2
-	echo "\n"
+    echo "\n"
     if has('win32') || has('win64')
         let dir = join(split(a:candidate.action__name,'\\')[:-2],'\\')
     else
@@ -55,6 +55,34 @@ function! s:kind.action_table.add_entire_dir.func(candidate)  "{{{2
     echo "add to playlist : ".dir
 endfunction
 
+let s:kind.action_table.fetch_lyrics = {
+\   'is_selectable' : 1,
+\   'is_quit' : 0,
+\   'is_invalidate_cache' : 0,
+\   'description' : 'fetch lyrics',
+\ }
+
+function! s:kind.action_table.fetch_lyrics.func(candidates)  "{{{2
+    if exists("*Fetch_lyrics") == 0
+        echo "not supported"
+        return
+    endif
+    for c in a:candidates
+        if has_key(c,"action__artist")
+            let artist = c.action__artist
+            let title  = c.action__title
+        else 
+            let word = split(c.word,' - ')
+            if len(word) == 2
+                let artist = word[0]
+                let title = word[1]
+            else
+                continue
+            endif
+        endif
+        call Fetch_lyrics(artist,title)
+    endfor
+endfunction
 function! unite#kinds#mpc_music#define()  "{{{2
     return s:kind
 endfunction
