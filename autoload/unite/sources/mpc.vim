@@ -180,19 +180,42 @@ function! s:generate_candidate_from_info(info,kind)
     let candidates = []
     let i = 1
     for info in a:info
-        let word = s:padding(i,5)
+        let abbr = s:padding(i,5)
+        let word = i
+        let word .= "n".(i/1000)*1000
     
         if has_key(info,"Title")
-            let word .= s:padding(has_key(info,"Artist") ? 
-                                \"  ".info["Artist"]:"",30)
-            let word .= s:padding(has_key(info,"Title") ? 
-                                \"  ".info["Title"]:"",40)
-            let word .= s:padding(has_key(info,"Album") ? 
-                                \"  ".info["Album"]:"",40)
-            let word .= s:padding(has_key(info,"Track") ? 
-                                \"   ".info["Track"]:"",8)
-            let word .= s:padding(has_key(info,"Date") ? 
-                                \" (".info["Date"].")":"",8)
+            if has_key(info,"Artist")
+                let abbr .= s:padding("  ".info["Artist"],30)
+                let word .= " ".info["Artist"]
+            else
+                let abbr .= "  ".repeat(' ',30)
+            endif
+
+            let abbr .= s:padding("  ".info["Title"],40)
+            let word .= " ".info["Title"]
+
+            if has_key(info,"Album")
+                let abbr .= s:padding("  ".info["Album"],40)
+                let word .= " ".info["Album"]
+            else
+                let abbr .= "  ".repeat(' ',40)
+            endif
+
+            if has_key(info,"Track")
+                let abbr .= s:padding("  ".info["Track"],8)
+                let word .= " ".info["Track"]
+            else
+                let abbr .= "  ".repeat(' ',8)
+            endif
+
+            if has_key(info,"Date")
+                let abbr .= s:padding(" (".info["Date"].")",8)
+                let word .= " ".info["Date"]
+            else
+                let abbr .= repeat(' ',8)
+            endif
+
             if has_key(info,"Time")
                 let time = info["Time"]
                 let min = time / 60
@@ -200,19 +223,23 @@ function! s:generate_candidate_from_info(info,kind)
                 let sec = time % 60
                 let sec = len(sec) == 1 ? "0".sec : sec
                 let time = min.":".sec
+                let abbr .= "  ".s:padding(time,5)
+                let word .= " ".time
             else 
-                let time = ""
+                let abbr = "  ".repeat(' ',5)
             endif
-            let word .= "  ".s:padding(time,5)
             if has_key(info,"Genre")
+                let abbr .= "  ".info["Genre"]
                 let word .= "  ".info["Genre"]
             endif
         else
+            let abbr .= "  ".simplify(info["file"])
             let word .= "  ".simplify(info["file"])
         endif
     
         let candidate = {}
         let candidate.word = word
+        let candidate.abbr = abbr
         let candidate.source = "mpc"
         let candidate.kind = a:kind
         let candidate.action__num = i
