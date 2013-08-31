@@ -8,6 +8,20 @@ let s:source = {
 
 let s:cache = {}
 
+let s:supported_arguments = [
+	\ "playlist",
+	\ "playlist2",
+	\ "ls",
+	\ "lsplaylists",
+	\ "listall",
+	\ "listall2",
+	\ "artist",
+	\ ]
+
+function! s:source.complete(args, context, arglead, cmdline, cursorpos) "{{{
+	return s:supported_arguments
+endfunction"}}}
+
 function! s:source.gather_candidates(args, context)
     if len(a:args) > 0 
         if index([
